@@ -1,4 +1,4 @@
-import {test} from '@playwright/test';
+import {test, errors} from '@playwright/test';
 import {readFileSync} from 'fs';
 import {Booking, markRowAsBooked} from '../utils';
 
@@ -65,9 +65,12 @@ test.describe('Booking courts', async () => {
 
       catch (err) {
         console.log("Couldn't find time slot for booking at index ", booking.index);
-        await markRowAsBooked(booking.index, false);
-        await page.screenshot({path: `screenshots/failed_booking_${booking.index}.png`, fullPage: true});
+        if (!(err instanceof errors.TimeoutError)) {
+          await markRowAsBooked(booking.index, false);
+          await page.screenshot({path: `screenshots/failed_booking_${booking.index}.png`, fullPage: true});
+        }
         await page.close();
+        return;
       }
 
       // confirm appt
