@@ -2,6 +2,7 @@ import {writeFileSync} from 'fs';
 import {Booking, getSheetRows} from './utils';
 
 async function globalSetup() {
+    console.log("Fetching sheets...");
     const bookingRows: (Booking & {rowIndex: number})[] = await getSheetRows();
     const now = new Date();
     const bookings = bookingRows
@@ -27,6 +28,7 @@ async function globalSetup() {
             index: b.rowIndex
         }));
 
+    console.log("Writing Sheet rows to file. New Booking count:", bookings.length');
     writeFileSync('./urls.json', JSON.stringify(bookings), {encoding: 'utf-8'});
 };
 export default globalSetup;

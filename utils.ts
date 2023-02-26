@@ -44,5 +44,6 @@ export const markRowAsBooked = async (index: number) => {
         return;
     }
     row.booked_at = new Date().toLocaleString();
+    console.log("Saving row: ", index);
     await row.save();
 }
