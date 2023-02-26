@@ -50,26 +50,28 @@ test.describe('Booking courts', async () => {
       // find all links with the date and the time and court
       // prefix '=' to time to avoid 2:00:00 PM to match 12:00:00 PM
       // if court is empty, find any except squash lessons (which have id 100000005)
-      const apptLocator = `a[href*='${booking.date}'][href*='=${booking.time}']${court ? `[href*='${court}']` : ":not([href*='100000005'])"}`;
+      const apptLocator = `a[href*='${booking.date}'][href*='Stime=${booking.time}']${court ? `[href*='${court}']` : ":not([href*='100000005'])"}`;
 
       try {
         // click on appointment link
+        console.log("DEBUG: locator", apptLocator);
         await page.locator(apptLocator).first().click({timeout: 10000});
-        console.log(`Slot requested is available, slot is for court ${court ? court : "N/A"} on ${booking.date} at ${booking.time} for ${booking.player_username}`);
+        console.log(`Slot requested is available, slot is for court ${court ? Object.keys(Courts).find(k => Courts[k] === court) : "ANY"} on ${booking.date} at ${booking.time} for ${booking.player_username}`);
       }
 
       catch (err) {
         console.log("Couldn't find time slot for booking at index ", booking.index);
+        await markRowAsBooked(booking.index, false);
         await page.screenshot({path: `screenshots/failed_booking_${booking.index}.png`, fullPage: true});
         return;
       }
 
       // confirm appt
-      await page.locator("#apptBtn").click();
+      await page.screenshot({path: `screenshots/booking_${booking.index}.png`, fullPage: true});
+      await page.locator("#apptBtn").click({timeout: 10000});
       await page.waitForLoadState('networkidle');
 
-      await markRowAsBooked(booking.index);
-      await page.screenshot({path: `screenshots/booking_${booking.index}.png`, fullPage: true});
+      await markRowAsBooked(booking.index, true);
       console.log('Booking successfully done');
 
     })
