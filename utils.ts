@@ -37,13 +37,13 @@ export const getSheetRows = async () => {
     return rows;
 }
 
-export const markRowAsBooked = async (index: number, success: boolean) => {
+export const markRowAsBooked = async (index: number, success: boolean, msg?: string) => {
     const rows = await getSheetRows();
     const row = rows?.find(r => r.rowIndex === index);
     if (!row) {
         return;
     }
-    row.booked_at = success ? new Date().toLocaleString() : "Not Available";
+    row.booked_at = success ? new Date().toLocaleString() : `Not booked ${msg}`;
     console.log("Saving row: ", index);
     await row.save();
 }
