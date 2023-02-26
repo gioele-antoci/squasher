@@ -2,3 +2,11 @@ node_modules/
 /test-results/
 /playwright-report/
 /playwright/.cache/
+booking.png
+/test-results/
+/playwright-report/
+/playwright/.cache/
+.env
+/screenshots
+sheeter.js
+urls.json

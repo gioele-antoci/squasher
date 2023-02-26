@@ -1,70 +1,74 @@
 import {test} from '@playwright/test';
-import {readFileSync, writeFileSync} from 'fs';
+import {readFileSync} from 'fs';
+import {Booking, markRowAsBooked} from '../utils';
 
-
-enum Courts {
-  court1 = "100000038",
-  court2 = "100000039",
-  court3 = "100000040",
-  court4 = "100000042",
-  court5 = "100000041",
+const Courts = {
+  1: "100000038",
+  2: "100000039",
+  3: "100000040",
+  4: "100000042",
+  5: "100000041",
 }
 
-const path = "tests/booking.json";
 
-test('Book Court', async ({page}) => {
-  const bookings: {court: string, date: string, time: string}[] = JSON.parse(readFileSync(path, {encoding: "utf8"}));
-  const firstBooking = bookings[0];
-  if (!firstBooking) {
-    return;
-  }
-  console.log(firstBooking);
-  const yyyymmdd = firstBooking.date;
-  const hmmssPM = firstBooking.time;
-  const court = Courts[firstBooking.court];
 
-  // go to homepage
-  await page.goto('https://clients.mindbodyonline.com/asp/adm/adm_appt_search.asp?studioid=937536&fl=true&tabID=103');
+test.describe('Booking courts', async () => {
+  const file = readFileSync('./urls.json') as any as string;
+  const bookings: Booking[] = JSON.parse(file);
+  console.log(bookings.length ? bookings : "Nothing to book");
 
-  // fill username, password and submit
-  await page.locator("#su1UserName").fill((<any>process.env)["email"]);
-  await page.locator("#su1Password").fill((<any>process.env)["password"]);
-  await page.locator("#btnSu1Login").click();
+  bookings.forEach((booking, i) => {
+    test(`Book Court, row: ${booking.index}`, async ({page}) => {
+      const court = booking.court ? Courts[booking.court] : null;
 
-  await page.waitForLoadState('networkidle');
+      // go to homepage
+      await page.goto('https://clients.mindbodyonline.com/asp/adm/adm_appt_search.asp?studioid=937536&fl=true&tabID=103');
 
-  // enter squash booking
-  await page.getByText("SINGLES SQUASH").click();
+      // fill username, password and submit
+      await page.locator("#su1UserName").fill(booking.player_username);
+      await page.locator("#su1Password").fill(booking.player_password);
+      await page.locator("#btnSu1Login").click();
 
-  // browse to schedule
-  await page.locator("[name='apptSchedBut']").click();
+      await page.waitForLoadState('networkidle');
 
-  // navigate to date
-  await page.locator("#txtDate").fill(yyyymmdd);
-  await page.locator("#txtDate").blur();
+      // enter squash booking
+      await page.getByText("SINGLES SQUASH").click();
 
-  // changing date...
-  await page.waitForLoadState('networkidle');
+      // browse to schedule
+      await page.locator("[name='apptSchedBut']").click();
 
-  const apptLocator = `a[href*='${yyyymmdd}'][href*='${hmmssPM}'][href*='${court}']`;
-  console.log(apptLocator);
-  // click on appointment link
-  await page.locator(apptLocator).click({timeout: 10000});
+      // navigate to date
+      await page.locator("#txtDate").fill(booking.date);
+      await page.locator("#txtDate").blur();
 
-  // confirm appt
-  await page.locator("#apptBtn").click();
+      // changing date...
+      await page.waitForLoadState('networkidle');
 
-  await page.waitForLoadState('networkidle');
+      // find all links with the date and the time and court
+      // prefix '=' to time to avoid 2:00:00 PM to match 12:00:00 PM
+      // if court is empty, find any except squash lessons (which have id 100000005)
+      const apptLocator = `a[href*='${booking.date}'][href*='=${booking.time}']${court ? `[href*='${court}']` : ":not([href*='100000005'])"}`;
+      console.log(apptLocator);
 
-  await page.screenshot({path: 'booking.png', fullPage: true});
+      try {
+        // click on appointment link
+        await page.locator(apptLocator).first().click({timeout: 10000});
+      }
 
-  bookings.shift();
+      catch (err) {
+        console.log("Couldn't book")
+        await page.screenshot({path: `screenshots/failed_booking_${booking.index}.png`, fullPage: true});
+        return;
+      }
 
-  try {
-    writeFileSync(path, JSON.stringify(bookings), 'utf8');
-    console.log('Booking successfully updated');
-  } catch (error) {
-    console.log('An error has occurred ', error);
-  }
+      // confirm appt
+      await page.locator("#apptBtn").click();
+      await page.waitForLoadState('networkidle');
 
+      await markRowAsBooked(booking.index);
+      await page.screenshot({path: `screenshots/booking_${booking.index}.png`, fullPage: true});
+      console.log('Booking successfully done');
+
+    })
+  });
 });
