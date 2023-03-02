@@ -24,6 +24,7 @@ export interface Booking {
     date: string;
     time: string;
     booked_at?: string;
+    error?: string;
     index: number;
 }
 
@@ -43,7 +44,11 @@ export const markRowAsBooked = async (index: number, success: boolean, msg?: str
     if (!row) {
         return;
     }
-    row.booked_at = success ? new Date().toLocaleString() : `Not booked ${msg}`;
+    if (success) {
+        row.booked_at = new Date().toLocaleString();
+    } else {
+        row.error = `Not booked ${msg}`;
+    }
     console.log("Saving row: ", index);
     await row.save();
 }
