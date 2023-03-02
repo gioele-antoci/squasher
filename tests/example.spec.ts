@@ -48,7 +48,7 @@ test.describe('Booking courts', async () => {
         await page.waitForLoadState('networkidle');
       }
       catch (err) {
-        await markRowAsBooked(booking.index, false, "Navigation failed");
+        await markRowAsBooked(booking.index, false, JSON.stringify(err));
         await page.close();
       }
       try {
@@ -64,9 +64,9 @@ test.describe('Booking courts', async () => {
       }
 
       catch (err) {
-        console.log("Couldn't find time slot for booking at index ", booking.index);
+        console.log("Couldn't find time slot for booking at index ", booking.index, err);
         if (!(err instanceof errors.TimeoutError)) {
-          await markRowAsBooked(booking.index, false);
+          await markRowAsBooked(booking.index, false, JSON.stringify(err));
           await page.screenshot({path: `screenshots/failed_booking_${booking.index}.png`, fullPage: true});
         }
         await page.close();
@@ -83,7 +83,7 @@ test.describe('Booking courts', async () => {
         console.log('Booking successfully done');
       }
       catch (err) {
-        await markRowAsBooked(booking.index, false, "Saving failed");
+        await markRowAsBooked(booking.index, false, JSON.stringify(err));
         await page.close();
       }
     })
