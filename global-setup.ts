@@ -16,12 +16,16 @@ async function globalSetup() {
             const twoDaysFromNow = new Date();
             // 47hs instead of 48hs, just in case
             twoDaysFromNow.setTime(twoDaysFromNow.getTime() + 47 * 60 * 60 * 1000);
-            console.log("Booking being evaluated is more than 2 days from now:", bookingDate > twoDaysFromNow);
 
-            return !b.booked_at &&
+            const validBooking = !b.booked_at &&
                 b.player_username &&
                 b.player_password &&
-                bookingDate > now
+                bookingDate > now;
+
+            if (validBooking) {
+                console.log("Booking being evaluated is less than 2 days from now:", bookingDate < twoDaysFromNow);
+            }
+            return validBooking;
         })
         // we must grab the minimum necessary to avoid circular dependencies when stringifying
         .map(b => ({
