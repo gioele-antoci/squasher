@@ -49,6 +49,7 @@ test.describe('Booking courts', async () => {
       }
       catch (err) {
         await updateSheetRow(booking.index, false, JSON.stringify(err));
+        await page.close();
       }
       try {
         // find all links with the date and the time and court
@@ -65,10 +66,11 @@ test.describe('Booking courts', async () => {
 
       catch (err) {
         console.log("Couldn't find time slot for booking at index ", booking.index, err);
-        await page.screenshot({path: `screenshots/failed_booking_${booking.index}_attempt_${new Date().toString()}.png`, fullPage: true});
         if (!(err instanceof errors.TimeoutError)) {
           await updateSheetRow(booking.index, false, JSON.stringify(err));
         }
+        await page.close();
+        return;
       }
 
       // confirm appt
@@ -82,6 +84,7 @@ test.describe('Booking courts', async () => {
       }
       catch (err) {
         await updateSheetRow(booking.index, false, JSON.stringify(err));
+        await page.close();
       }
     })
   });
