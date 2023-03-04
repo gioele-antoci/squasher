@@ -59,6 +59,7 @@ test.describe('Booking courts', async () => {
 
         // click on appointment link
         console.log("DEBUG: locator", apptLocator);
+        await page.screenshot({path: `screenshots/booking_${booking.index}_attempt_${new Date().toLocaleString()}.png`, fullPage: true, });
         await page.locator(apptLocator).first().click({timeout: 10000});
         console.log(`Slot requested is available, slot is for court ${court ? Object.keys(Courts).find(k => Courts[k] === court) : "ANY"} on ${booking.date} at ${booking.time} for ${booking.player_username}`);
       }
