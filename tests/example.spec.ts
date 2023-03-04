@@ -49,7 +49,6 @@ test.describe('Booking courts', async () => {
       }
       catch (err) {
         await updateSheetRow(booking.index, false, JSON.stringify(err));
-        await page.close();
       }
       try {
         // find all links with the date and the time and court
@@ -70,8 +69,6 @@ test.describe('Booking courts', async () => {
         if (!(err instanceof errors.TimeoutError)) {
           await updateSheetRow(booking.index, false, JSON.stringify(err));
         }
-        await page.close();
-        return;
       }
 
       // confirm appt
@@ -85,7 +82,6 @@ test.describe('Booking courts', async () => {
       }
       catch (err) {
         await updateSheetRow(booking.index, false, JSON.stringify(err));
-        await page.close();
       }
     })
   });
