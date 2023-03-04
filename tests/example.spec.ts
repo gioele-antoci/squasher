@@ -1,6 +1,6 @@
 import {test, errors} from '@playwright/test';
 import {readFileSync} from 'fs';
-import {Booking, markRowAsBooked} from '../utils';
+import {Booking, markRowAsBooked as updateSheetRow} from '../utils';
 
 const Courts = {
   1: "100000038",
@@ -48,7 +48,7 @@ test.describe('Booking courts', async () => {
         await page.waitForLoadState('networkidle');
       }
       catch (err) {
-        await markRowAsBooked(booking.index, false, JSON.stringify(err));
+        await updateSheetRow(booking.index, false, JSON.stringify(err));
         await page.close();
       }
       try {
@@ -59,16 +59,16 @@ test.describe('Booking courts', async () => {
 
         // click on appointment link
         console.log("DEBUG: locator", apptLocator);
-        await page.screenshot({path: `screenshots/booking_${booking.index}_attempt_${new Date().toLocaleString()}.png`, fullPage: true, });
+        await page.screenshot({path: `screenshots/booking_${booking.index}_attempt_${new Date().toString()}.png`, fullPage: true, });
         await page.locator(apptLocator).first().click({timeout: 10000});
         console.log(`Slot requested is available, slot is for court ${court ? Object.keys(Courts).find(k => Courts[k] === court) : "ANY"} on ${booking.date} at ${booking.time} for ${booking.player_username}`);
       }
 
       catch (err) {
         console.log("Couldn't find time slot for booking at index ", booking.index, err);
+        await page.screenshot({path: `screenshots/failed_booking_${booking.index}_attempt_${new Date().toString()}.png`, fullPage: true});
         if (!(err instanceof errors.TimeoutError)) {
-          await markRowAsBooked(booking.index, false, JSON.stringify(err));
-          await page.screenshot({path: `screenshots/failed_booking_${booking.index}.png`, fullPage: true});
+          await updateSheetRow(booking.index, false, JSON.stringify(err));
         }
         await page.close();
         return;
@@ -80,11 +80,11 @@ test.describe('Booking courts', async () => {
         await page.locator("#apptBtn").click({timeout: 10000});
         await page.waitForLoadState('networkidle');
 
-        await markRowAsBooked(booking.index, true);
+        await updateSheetRow(booking.index, true);
         console.log('Booking successfully done');
       }
       catch (err) {
-        await markRowAsBooked(booking.index, false, JSON.stringify(err));
+        await updateSheetRow(booking.index, false, JSON.stringify(err));
         await page.close();
       }
     })
